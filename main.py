@@ -1,98 +1,69 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog, simpledialog
+from pathlib import Path
 
-class myGui(tk.Tk):
+# Access the asset from the main folder
+SCRIPT_PATH = Path(__file__).resolve().parent
+ASSETS_PATH = SCRIPT_PATH.parent / "assets"
+
+def relative_to_assets(path: str) -> Path:
+    return ASSETS_PATH / Path(path)
+
+class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("List Manager")
-        self.geometry("300x500")
-        self.resizable(False,True)
-        
-        self.label = tk.Label(self, text="List Manager", font=("Impact",18), pady=10)
-        self.label.pack()
-        self.menu()
-        self.list()
+        self.geometry("500x500")
+        self.configure(bg="#FFFFFF")
+        self.title("Pomodoro App")
+        self.resizable(False, False)
 
-    #Pinaka main frame
-    def list(self):
-        self.frame = tk.Frame(self, padx=30, pady=10)        
-        self.frame.pack(fill=tk.BOTH, expand=True)
+        self.main()
+        self.timer()
 
-        self.listbox = tk.Listbox(self.frame, font=("Times", 30))
-        self.listbox.pack(fill=tk.BOTH, expand=True)
+    def main(self):
+        # Create canvas
+        self.canvas = tk.Canvas(
+            self,
+            bg="#FFFFFF",
+            height=500,
+            width=500,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
 
-    #Menubar sa taas
-    def menu(self):
-        menubar = tk.Menu(self)
-        
-        #File menu
-        file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label="Open", command=self.open_file)
-        file_menu.add_command(label="Save", command=self.save_file)
-        menubar.add_cascade(label="File", menu=file_menu)
-        
-        #Edit Menu
-        edit_menu = tk.Menu(menubar, tearoff=0)
-        edit_menu.add_command(label="Add", command=self.add_item)
-        edit_menu.add_command(label="Delete", command=self.delete_item)
-        edit_menu.add_command(label="Edit", command=self.edit_item)
-        menubar.add_cascade(label="Edit", menu=edit_menu)
-        
-        #Help Menu
-        help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label="About", command=self.display_about)
-        menubar.add_cascade(label="Help", menu=help_menu)
-        
-        self.config(menu=menubar)
-    
-    #File Menu Handling - open file 
-    def open_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            with open(file_path, 'r') as file:
-                data = file.readlines()
-            self.listbox.delete(0, tk.END)
-            for item in data:
-                self.listbox.insert(tk.END, item.strip())
+        # Load and place images
+        images = [
+            "image_1.png", "image_2.png", "image_3.png", "image_4.png", "image_5.png",
+            "entry_1.png", "image_6.png", "image_7.png", "image_8.png", "image_9.png", "image_10.png"
+        ]
+        self.image_objects = []
+        for image_path in images:
+            image = tk.PhotoImage(file=relative_to_assets(image_path))
+            self.image_objects.append(image)
 
-    #File Menu Handling - save file 
-    def save_file(self):
-        items = self.listbox.get(0, tk.END)
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt")
-        if file_path:
-            with open(file_path, 'w') as file:
-                for item in items:
-                    file.write(item + '\n')
+        # Coordinates for images
+        coordinates = [
+            (250, 250), (408, 465), (250, 36),
+            (196, 388), (304, 389), (250, 346),
+            (113, 484), (250, 255), (106, 32), (468, 465),
+            (349, 465)
+        ]
+        for i, coord in enumerate(coordinates):
+            self.canvas.create_image(coord[0], coord[1], image=self.image_objects[i])
 
-    #Edit Menu Handling - add  
-    def add_item(self):
-        item = simpledialog.askstring("Add Item", "Enter item:")
-        if item:
-            self.listbox.insert(tk.END, item)
-
-    #Edit Menu Handling - delete  
-    def delete_item(self):
-        selected_indices = self.listbox.curselection()
-        if selected_indices:
-            for index in reversed(selected_indices):
-                self.listbox.delete(index)
-
-    #Edit Menu Handling - edit  
-    def edit_item(self):
-        selected_indices = self.listbox.curselection()
-        if selected_indices:
-            selected_index = selected_indices[0]  # Get the first index from the tuple
-            item = self.listbox.get(selected_index)
-            new_item = simpledialog.askstring("Edit Item", f"Edit item '{item}':", initialvalue=item)
-            if new_item:
-                self.listbox.delete(selected_index)
-                self.listbox.insert(selected_index, new_item)
-
-    #Help Menu 
-    def display_about(self):
-        messagebox.showinfo("About", "List Manager\nAuthor: owenlim225")
+        # Entry widget
+        entry_image_1 = self.image_objects[5]
+        entry_bg_1 = self.canvas.create_image(250, 346, image=entry_image_1)
+        entry_1 = tk.Entry(self, bd=0, bg="#FFFFFF", fg="#000716", highlightthickness=0)
+        entry_1.place(x=208, y=335, width=83, height=15)
 
 
-            
-app = myGui()
-app.mainloop()
+    def timer(self):
+        # Create a label to display the timer
+        timer_label = tk.Label(self, text="00:00", font=("Inter BlackItalic", 24 * -1), bg="#FF2929")
+        timer_label.place(x=215, y=232)
+
+if __name__ == "__main__":
+    app = Gui()
+    app.mainloop()
